@@ -11,6 +11,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import app.jzero.com.myapp12contacts.util.PhoneUtil;
 
 import static app.jzero.com.myapp12contacts.Main.MEMADDR;
 import static app.jzero.com.myapp12contacts.Main.MEMEMAIL;
@@ -57,10 +60,20 @@ public class Member_Detail extends AppCompatActivity {
                 }
         );
         findViewById(R.id.callBtn).setOnClickListener(
-                (View v)->{}
+                (View v)->{
+                   PhoneUtil util = new PhoneUtil(ctx, this);
+                   util.setPhoneNum(phone.getText().toString());
+                   util.call();
+                }
         );
+
         findViewById(R.id.dialBtn).setOnClickListener(
-                (View v)->{}
+                (View v)->{
+                    PhoneUtil util = new PhoneUtil(ctx, this);
+                    Toast.makeText(ctx, "전화번호 :: "+phone.getText().toString(), Toast.LENGTH_SHORT).show();
+                    util.setPhoneNum(phone.getText().toString());
+                    util.dial();
+                }
         );
         findViewById(R.id.smsBtn).setOnClickListener(
                 (View v)->{}
@@ -95,7 +108,6 @@ public class Member_Detail extends AppCompatActivity {
             super(ctx);
             helper = new Main.SQLiteHelper(ctx);
         }
-
         @Override
         public SQLiteDatabase getDatabase() {
             return helper.getReadableDatabase();
@@ -108,7 +120,6 @@ public class Member_Detail extends AppCompatActivity {
         }
         public Main.Member execute(){
             Main.Member m = new Main.Member();
-
             Cursor cursor = this.getDatabase().rawQuery(String.format(" SELECT * FROM MEMBER WHERE "+Main.MEMSEQ+" LIKE %s",id ),null);
             if (cursor != null) {
                 while (cursor.moveToNext()) {

@@ -160,17 +160,13 @@ public class Member_List extends AppCompatActivity {
     private class MemberAdapter extends BaseAdapter{
         ArrayList<Main.Member> list;
         LayoutInflater inflater ;
+        Context this__;
         public MemberAdapter(Context ctx, ArrayList<Member> list) {
             this.list = list;
             this.inflater = LayoutInflater.from(ctx);
+            this.this__ = ctx;
         }
-        private int[] photos = { //왜 인트 ?
-                R.drawable.profile_1,
-                R.drawable.profile_2,
-                R.drawable.profile_3,
-                R.drawable.profile_4,
-                R.drawable.profile_5
-        };
+
         @Override
         public int getCount() {
             return list.size();
@@ -199,7 +195,25 @@ public class Member_List extends AppCompatActivity {
             }else{
                 holder = (ViewHolder) v.getTag();
             }
-            holder.profile.setImageResource(photos[i]);
+
+            ItemProfile query = new ItemProfile(this__);
+            query.seq = list.get(i).seq+"";
+
+            holder.profile.setImageDrawable(
+                    getResources().getDrawable(
+                            getResources().getIdentifier(
+                                    this__.getPackageName()+":drawable/"
+                                            + (new Main.RetrieveService() {
+                                        @Override
+                                        public Object perform() {
+                                            return query.execute();
+                                        }
+                                    }.perform())
+                                    , null, null
+                            ), this__.getTheme()
+                    )
+            );
+
             holder.name.setText(list.get(i).name);
             holder.phone.setText(list.get(i).phone);
             return v;
@@ -208,5 +222,36 @@ public class Member_List extends AppCompatActivity {
     static class ViewHolder{
         ImageView profile;
         TextView name, phone;
+    }
+    private class MemberProfileQuery extends Main.QueryFactory {
+        SQLiteOpenHelper helper;
+        public MemberProfileQuery(Context ctx) {
+            super(ctx);
+            helper = new Main.SQLiteHelper(ctx);
+        }
+
+        @Override
+        public SQLiteDatabase getDatabase() {
+            return helper.getReadableDatabase();
+        }
+    }
+    private class ItemProfile extends MemberProfileQuery{
+        String seq;
+        public ItemProfile(Context ctx) {
+            super(ctx);
+        }
+        public String execute(){
+            Cursor c = getDatabase()
+                    .rawQuery(String.format(
+                            " SELECT %s FROM %s WHERE %s LIKE '%s' "
+                            , MEMPHOTO, Main.MEMTAB, MEMSEQ, seq),null);
+            String result = "";
+            if(c != null){
+                if(c.moveToNext()){
+                    result = c.getString(c.getColumnIndex(MEMPHOTO));
+                }
+            }
+            return result;
+        }
     }
 }
